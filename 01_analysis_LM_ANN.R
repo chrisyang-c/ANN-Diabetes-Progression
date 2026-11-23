@@ -238,6 +238,40 @@ invisible(dev.off())
 saveRDS(list(lm_final = lm_final, ann_final = ann_final, best_size = best_size,
              scaler_final = sc_final, seed = SEED),
         file.path(out, "09_final_models.rds"))
+# ---------------------------------------------------------------------------
+# 附錄：穩健性檢查（報告「討論與限制」第 1 點）
+# 以 30 組亂數種子重複「切割 → Validation 選 size → Train+Val 重估 → Test」整個流程，
+# 只用來觀察結論會不會隨切割改變；不回頭修改上面的正式分析。
+# ---------------------------------------------------------------------------
+cat("\n[附錄] 30 組切割的穩健性檢查（約需 1 分鐘）\n")
+run_split <- function(s) {
+  set.seed(s)
+  pm <- sample.int(n)
+  tr <- raw[pm[seq_len(n_train)], ]
+  va <- raw[pm[n_train + seq_len(n_valid)], ]
+  te <- raw[pm[(n_train + n_valid + 1):n], ]
+  fit_s <- function(d, sc, k) {
+    set.seed(s)
+    nnet::nnet(y ~ ., data = nn_frame(d, sc), size = k, linout = TRUE,
+               decay = ANN_DECAY, maxit = ANN_MAXIT, trace = FALSE)
+  }
+  sc <- fit_scaler(tr)
+  v_rmse <- vapply(ANN_SIZES, function(k)
+    metrics(va$progression, predict_ann(fit_s(tr, sc, k), va, sc))[["RMSE"]], numeric(1))
+  k_best <- ANN_SIZES[which.min(v_rmse)]
+  ft <- rbind(tr, va); sc_f <- fit_scaler(ft)
+  m_lm <- metrics(te$progression, as.numeric(predict(lm(lm_formula, data = ft), te)))
+  m_nn <- metrics(te$progression, predict_ann(fit_s(ft, sc_f, k_best), te, sc_f))
+  c(seed = s, best_size = k_best, LM_RMSE = m_lm[["RMSE"]], ANN_RMSE = m_nn[["RMSE"]],
+    LM_R2 = m_lm[["R2"]], ANN_R2 = m_nn[["R2"]])
+}
+rob <- as.data.frame(t(vapply(1:30, run_split, numeric(6))))
+save_csv(rob, "10_robustness_30_splits.csv")
+print(table(選出的size = rob$best_size))
+print(round(apply(rob[c("LM_RMSE", "ANN_RMSE", "LM_R2", "ANN_R2")], 2, quantile,
+                  c(0, .25, .5, .75, 1)), 3))
+cat("ANN 的 Test RMSE 低於線性迴歸的次數：", sum(rob$ANN_RMSE < rob$LM_RMSE), "/ 30\n")
+
 cat("\n完成。所有結果已寫入：", normalizePath(out), "\n")
 sink()
 # TODO 8：研究報告另行繳交（docx / PDF）

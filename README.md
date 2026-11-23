@@ -43,4 +43,5 @@ Test 最終比較（n = 89）
 
 - 在這份資料上，ANN 沒有勝過線性迴歸：主要變數與 Y 的關係接近線性，而且樣本小。
 - size 越大，Train RMSE 越低、Validation RMSE 越高，呈現典型的過度配適。
+- 穩健性檢查（程式最後的附錄，`results/10_robustness_30_splits.csv`）：以 30 組亂數種子重複整個流程，28 次選出 size = 3，ANN 只有 2 次在 Test 上勝過線性迴歸；Test RMSE 中位數為 55.1（LM）與 58.5（ANN）。
 - 本分析僅供統計學習練習，不可用於臨床診斷或醫療決策。
