@@ -1,0 +1,41 @@
+糖尿病病程進展預測：Linear Regression vs. ANN
+執行日期：2026-11-23；R 4.6.1；nnet 7.3.20
+資料：442 筆，10 個解釋變數，缺失值 0
+
+[TODO 1] progression 的描述統計
+   Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
+   25.0    87.0   140.5   152.1   211.5   346.0 
+標準差 77.09；偏態係數 0.438（> 0 表示右偏）
+BMI 與 progression 的 Pearson 相關 0.586
+ variable cor_with_progression
+      bmi                0.586
+       s5                0.566
+       bp                0.441
+       s4                0.430
+       s3               -0.395
+       s6                0.382
+       s1                0.212
+      age                0.188
+       s2                0.174
+      sex                0.043
+
+[切割] Train 265；Validation 88；Test 89
+
+[TODO 3-4] Validation 選模表（R² 的 SST 以 Validation 平均數計算）
+                        Model hidden_units Train_RMSE   RMSE    MAE      R2 convergence selected
+ Linear Regression (baseline)           NA     53.253 56.434 47.086  0.4783          NA         
+                        ANN-3            3     46.303 60.285 49.562  0.4046           0      yes
+                        ANN-6            6     39.775 71.042 56.837  0.1732           0         
+                       ANN-10           10     30.672 95.094 77.491 -0.4814           0         
+RMSE/MAE/R2 為 Validation 指標；Train_RMSE 為同一模型在 Train 上的 RMSE
+convergence：0 = 達到 nnet 收斂條件；1 = 跑滿 maxit
+選定的隱藏層神經元數 size = 3 
+
+[TODO 5] 最終訓練集 n = 353 ；ANN 收斂代碼 = 0 
+
+[TODO 6] Test 最終評估（n = 89；R² 的 SST 以 Test 觀察值平均數計算）
+             Model   RMSE    MAE     R2
+ Linear Regression 53.148 42.296 0.5036
+             ANN-3 62.094 48.291 0.3225
+
+完成。所有結果已寫入： /Users/me/Desktop/LDA&SVM/第七週 ANN/results 

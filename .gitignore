@@ -1,0 +1,14 @@
+.DS_Store
+.Rhistory
+.Rproj.user/
+
+# 本機參考檔與教材，不上傳
+*.pdf
+*.zip
+*.docx
+*.rds
+ANN_Logistic_to_Neural_Network.R
+GLOSSARY.md
+ANN_R_Results/
+繳交_ANN/
+GitHub截圖_*.png
